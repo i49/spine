@@ -21,6 +21,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,6 +34,9 @@ public class PackageDocumentBuilder {
     private String title;
     private String language;
     private OffsetDateTime lastModified;
+    private List<String> authors = Collections.emptyList(); 
+    private String rights;
+    
     private List<Path> pages = Collections.emptyList();
     private Set<Path> resources = Collections.emptySet();
     
@@ -42,22 +46,44 @@ public class PackageDocumentBuilder {
     }
     
     public PackageDocumentBuilder identifier(String identifier) {
-        this.identifier = identifier;
+        if (identifier != null) {
+            this.identifier = identifier;
+        }
         return this;
     }
 
     public PackageDocumentBuilder title(String title) {
-        this.title = title;
+        if (title != null) {
+            this.title = title;
+        }
         return this;
     }
     
     public PackageDocumentBuilder language(String language) {
-        this.language = language;
+        if (language != null) {
+            this.language = language;
+        }
         return this;
     }
     
     public PackageDocumentBuilder lastModified(OffsetDateTime dateTime) {
-        this.lastModified = dateTime;
+        if (dateTime != null) {
+            this.lastModified = dateTime;
+        }
+        return this;
+    }
+    
+    public PackageDocumentBuilder authors(List<String> authors) {
+        if (authors != null) {
+            this.authors = authors;
+        }
+        return this;
+    }
+    
+    public PackageDocumentBuilder rights(String rights) {
+        if (rights != null) {
+            this.rights = rights;
+        }
         return this;
     }
     
@@ -104,6 +130,14 @@ public class PackageDocumentBuilder {
             return lastModified;
         }
         return OffsetDateTime.now();
+    }
+    
+    private List<String> getAuthors() {
+        return authors;
+    }
+    
+    private Optional<String> getRights() {
+        return Optional.ofNullable(rights);
     }
     
     private class Generator {
@@ -154,6 +188,18 @@ public class PackageDocumentBuilder {
             modifiedElement.setAttribute("property", "dcterms:modified");
             modifiedElement.setTextContent(lastModified.format(ISO8601_FORMATTER));
             e.appendChild(modifiedElement);
+            
+            for (String author: getAuthors()) {
+                Element child = doc.createElementNS(DC_NAMESPACE_URI, "dc:creator");
+                child.setTextContent(author);
+                e.appendChild(child);
+            }
+            
+            getRights().ifPresent(value->{
+                Element child = doc.createElementNS(DC_NAMESPACE_URI, "dc:rights");
+                child.setTextContent(value);
+                e.appendChild(child);
+            });
             
             return e;
         }

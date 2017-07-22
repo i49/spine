@@ -15,9 +15,53 @@
  */
 package com.github.i49.spine.crawlers;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.events.Event;
+import org.w3c.dom.events.EventTarget;
+import org.w3c.dom.html.HTMLIFrameElement;
+
+import com.github.i49.spine.common.HtmlDocument;
+
+/**
+ * Crawler for parsing web pages those have contents within iframes.
+ */
 public class FrameCrawler extends AbstractCrawler {
 
+    private String contentFrame;
+    
     public FrameCrawler() {
         super();
+    }
+ 
+    @Override
+    public void configure(CrawlerConfiguration conf) throws Exception {
+        super.configure(conf);
+        this.contentFrame = conf.getContentFrame();
+    }
+
+    @Override
+    protected void handleDocumentLoaded(Document doc) {
+        Element iframe = getContentFrame(doc);
+        if (iframe != null) {
+            ((EventTarget)iframe).addEventListener("load", this::handleContentLoaded, false);
+        }
+    }
+
+    private void handleContentLoaded(Event event) {
+        log.info("Content document was loaded.");
+        Document doc = getWebEngine().getDocument();
+        Element iframe = getContentFrame(doc);
+        if (iframe != null) {
+            processContent(((HTMLIFrameElement)iframe).getContentDocument());
+        }
+    }
+    
+    private Element getContentFrame(Document doc) {
+        HtmlDocument html = HtmlDocument.of(doc);
+        if (this.contentFrame != null) {
+            return html.find(this.contentFrame);
+        }
+        return null;
     }
 }

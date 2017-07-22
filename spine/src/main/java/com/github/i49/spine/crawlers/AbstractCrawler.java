@@ -32,17 +32,16 @@ import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.events.Event;
-import org.w3c.dom.events.EventTarget;
-import org.w3c.dom.html.HTMLIFrameElement;
 
-import com.github.i49.spine.common.DocumentOperator;
+import com.github.i49.spine.common.HtmlDocument;
 import com.github.i49.spine.common.HtmlDocumentWriter;
 import com.github.i49.spine.common.DocumentWriter;
+import com.github.i49.spine.common.Documents;
 import com.github.i49.spine.common.HtmlSpec;
 import com.github.i49.spine.common.PackageDocumentBuilder;
 import com.github.i49.spine.common.PublicationWriter;
 import com.github.i49.spine.common.XmlDocumentWriter;
+import com.github.i49.spine.crawlers.CrawlerConfiguration.Metadata;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -59,6 +58,8 @@ public abstract class AbstractCrawler implements Crawler {
     private String lastPage;
     private String publicationName;
     private int maxPages;
+    
+    private Metadata metadata;
   
     private List<Path> pages;
     private Set<Path> resources;
@@ -78,6 +79,7 @@ public abstract class AbstractCrawler implements Crawler {
         this.lastPage = conf.getLastPage();
         this.publicationName = conf.getPublicationName();
         this.maxPages = conf.getMaxPages();
+        this.metadata = conf.getMetadata();
  
         Path workingDirectory = Paths.get(".");
         this.layoutPolicy = new LayoutPolicy(workingDirectory, this.publicationName);
@@ -122,23 +124,13 @@ public abstract class AbstractCrawler implements Crawler {
     private void handleStateChange(ObservableValue<? extends State> value, State oldState, State newState) {
         log.info("State changed: " + newState.toString());
         if (newState == State.SUCCEEDED) {
-            handleContainerLoadEvent(webEngine.getDocument());
+            handleDocumentLoaded(webEngine.getDocument());
         }
     }
   
-    protected void handleContainerLoadEvent(Document doc) {
-        Element topic = doc.getElementById("topic");
-        ((EventTarget)topic).addEventListener("load", this::handleContentLoadEvent, false);
-    }
+    protected abstract void handleDocumentLoaded(Document doc);
     
-    protected void handleContentLoadEvent(Event event) {
-        log.info("Content document was loaded.");
-        Document doc = getWebEngine().getDocument();
-        HTMLIFrameElement iframe = (HTMLIFrameElement)doc.getElementById("topic");
-        processContent(iframe.getContentDocument());
-    }
-    
-    private void processContent(Document doc) {
+    protected void processContent(Document doc) {
         try {
             addPage(doc);
             if (hasMorePages()) {
@@ -175,7 +167,7 @@ public abstract class AbstractCrawler implements Crawler {
         }
         try {
             writeContentDocument(doc, layoutPolicy.getOriginalDirectory().resolve(local));
-            doc = modifyDocument(doc);
+            doc = convertDocument(doc);
             writeContentDocument(doc, layoutPolicy.getPublicationContentDirectory().resolve(local));
             writeAllImages(doc);
             this.pages.add(local);
@@ -184,8 +176,9 @@ public abstract class AbstractCrawler implements Crawler {
         }
     }
     
-    protected Document modifyDocument(Document doc) throws Exception {
-        DocumentOperator op = new DocumentOperator(doc, true)
+    protected Document convertDocument(Document doc) throws Exception {
+        Document copied = Documents.copy(doc);
+        HtmlDocument.of(copied)
                 .toLowerCase()
                 .remove("script")
                 .remove("meta")
@@ -196,7 +189,7 @@ public abstract class AbstractCrawler implements Crawler {
                 .removeDataAttributes()
                 .addMetaCharset("utf-8")
                 ;
-        return op.getDocument();
+        return copied;
     }
     
     private Path mapToLocal(String location) {
@@ -204,7 +197,7 @@ public abstract class AbstractCrawler implements Crawler {
             String local = location.substring(this.rootLocation.length());
             return Paths.get(local);
         } else {
-            log.warning("SKipped foreign location: " + location);
+            log.warning(Message.EXTERNAL_PAGE_WAS_SKIPPED.with(location));
             return null;
         }
     }
@@ -281,7 +274,9 @@ public abstract class AbstractCrawler implements Crawler {
     }
     
     protected void buildPackage(PackageDocumentBuilder builder) {
-        builder.title("Torque Resource Manager Administrator Guide")
-               .language("en-US");
+        builder.title(metadata.getTitle())
+               .language(metadata.getLanguage())
+               .authors(metadata.getAuthors())
+               .rights(metadata.getRights());
     }
 }

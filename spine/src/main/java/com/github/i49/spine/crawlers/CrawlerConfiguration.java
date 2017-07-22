@@ -15,6 +15,9 @@
  */
 package com.github.i49.spine.crawlers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Configuration for crawlers.
  */
@@ -26,10 +29,13 @@ public class CrawlerConfiguration {
     private String rootLocation;
     private String publicationName;
     private int maxPages;
-    
+    private String contentFrame;
+    private Metadata metadata;
+   
     public CrawlerConfiguration() {
-        this.type = "basic";
+        this.type = "simple";
         this.maxPages = Integer.MAX_VALUE;
+        this.metadata = new Metadata();
     }
     
     public String getType() {
@@ -78,5 +84,67 @@ public class CrawlerConfiguration {
 
     public void setMaxPages(int maxPages) {
         this.maxPages = maxPages;
+    }
+    
+    public String getContentFrame() {
+        return contentFrame;
+    }
+
+    public void setContentFrame(String frame) {
+        this.contentFrame = frame;
+    }
+
+    public Metadata getMetadata() {
+        return metadata;
+    }
+    
+    public void setMetadata(Metadata metadata) {
+        this.metadata = metadata;
+    }
+    
+    public static class Metadata {
+        
+        private String title;
+        private String language;
+        private List<String> authors;
+        private String rights;
+        
+        public Metadata() {
+            this.title = "(untitled)";
+            this.language = "en";
+            this.authors = new ArrayList<>();
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getLanguage() {
+            return language;
+        }
+
+        public void setLanguage(String language) {
+            this.language = language;
+        }
+
+        public List<String> getAuthors() {
+            return authors;
+        }
+        
+        public void setAuthors(List<String> authors) {
+            this.authors = authors;
+        }
+
+        public String getRights() {
+            return rights;
+        }
+
+        public void setRights(String rights) {
+            this.rights = rights;
+        }
     }
 }

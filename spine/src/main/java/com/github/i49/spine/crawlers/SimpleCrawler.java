@@ -13,33 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.github.i49.spine.crawlers;
 
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
+import org.w3c.dom.Document;
 
 /**
- * Localized messages.
+ * Simple crawler for parsing web pages without iframes.
  */
-public enum Message {
-    CRAWLER_CONFIGURATION_NOT_FOUND,
-    UNSUPPORTED_CRAWLER_TYPE,
-    EXTERNAL_PAGE_WAS_SKIPPED
-    ;
-  
-    private static final String BASE_NAME = "com.github.i49.spine.crawlers.messages";
-    private static final ResourceBundle bundle = ResourceBundle.getBundle(BASE_NAME);
-   
+public class SimpleCrawler extends AbstractCrawler {
+
     @Override
-    public String toString() {
-        return getPattern();
-    }
-
-    public String with(Object... arguments) {
-        return MessageFormat.format(getPattern(), arguments);
-    }
-
-    private String getPattern() {
-        return bundle.getString(name());
+    protected void handleDocumentLoaded(Document doc) {
+        log.info("Document was loaded.");
+        processContent(doc);
     }
 }

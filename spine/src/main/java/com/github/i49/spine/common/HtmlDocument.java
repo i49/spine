@@ -27,41 +27,46 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class DocumentOperator {
+public class HtmlDocument {
     
     private final Document doc;
     private final Element html;
     private final Element head;
     private final Element body;
     
-    public DocumentOperator(Document doc, boolean copy) throws Exception {
-        if (copy) {
-            this.doc = Documents.copy(doc);
-        } else {
-            this.doc = doc;
-        }
+    public static HtmlDocument of(Document doc) {
+        return new HtmlDocument(doc);
+    }
+    
+    private HtmlDocument(Document doc) {
+        this.doc = doc;
         this.html = this.doc.getDocumentElement();
         this.head = getHead();
         this.body = getBody();
     }  
     
-    public DocumentOperator addMetaCharset(String value) {
+    public HtmlDocument addMetaCharset(String value) {
         Element meta = doc.createElementNS(HtmlSpec.NAMESPACE_URL, "meta");
         meta.setAttribute("charset", value);
         this.head.insertBefore(meta, this.head.getFirstChild());
         return this;
     }
     
+    public Element find(String expression) {
+        List<Element> elements = findElements(expression);
+        return elements.size() > 0 ? elements.get(0) : null;
+    }
+    
     public Document getDocument() {
         return doc;
     }
     
-    public DocumentOperator remove(String element) {
+    public HtmlDocument remove(String element) {
         removeNodes(findElements(element));
         return this;
     }
     
-    public DocumentOperator removeContainingClass(String className) {
+    public HtmlDocument removeContainingClass(String className) {
         List<Element> found = findElements(this.body, e->{
             if (!e.hasAttribute("class")) {
                 return false;
@@ -77,7 +82,7 @@ public class DocumentOperator {
         return this;
     }
     
-    public DocumentOperator removeAttributesWithPrefix(String prefix) {
+    public HtmlDocument removeAttributesWithPrefix(String prefix) {
         List<Attr> attributes = new ArrayList<>();
         visitAttributes(this.html, a->{
             if (a.getName().startsWith(prefix)) {
@@ -88,11 +93,11 @@ public class DocumentOperator {
         return this;
     }
     
-    public DocumentOperator removeDataAttributes() {
+    public HtmlDocument removeDataAttributes() {
         return removeAttributesWithPrefix("data-");
     }
     
-    public DocumentOperator toLowerCase() {
+    public HtmlDocument toLowerCase() {
         visitNodes(this.html, node->{
             if (node.getNodeType() == Node.ELEMENT_NODE) {
                 Element e = (Element)node;
@@ -106,7 +111,7 @@ public class DocumentOperator {
         return this;
     }
     
-    public DocumentOperator unwrap(String localName) {
+    public HtmlDocument unwrap(String localName) {
         for (Element wrapper: findElements(localName)) {
             unwrap(wrapper);
         }
@@ -135,12 +140,22 @@ public class DocumentOperator {
     }
     
     private List<Element> findElements(String expression) {
-        List<Element> found = new ArrayList<>();
+        List<Element> elements = new ArrayList<>();
+        if (expression.contains("#")) {
+            String[] parts = expression.split("#");
+            String tagName = parts[0];
+            String id = parts[1];
+            Element found = doc.getElementById(id);
+            if (found != null && (tagName.isEmpty() || found.getLocalName().equals(tagName))) { 
+                elements.add(found);
+            }
+            return elements;
+        }
         NodeList list = doc.getElementsByTagNameNS("*", expression);
         for (int i = 0; i < list.getLength(); i++) {
-            found.add((Element)list.item(i));
+            elements.add((Element)list.item(i));
         }
-        return found;
+        return elements;
     }
     
     private List<Element> findElements(Element root, Predicate<Element> predicate) {

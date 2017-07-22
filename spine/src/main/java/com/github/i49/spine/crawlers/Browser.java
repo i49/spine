@@ -56,6 +56,7 @@ public class Browser extends Application {
             this.crawler.configure(configuration);
             initialized = true;
         } catch (Exception e) {
+            log.severe(e.getMessage());
             initialized = false;
         }
     }
@@ -105,7 +106,9 @@ public class Browser extends Application {
     }
     
     private static Crawler createCrawler(String type) {
-        if ("frame".equals(type)) {
+        if ("simple".equals(type)) {
+            return new SimpleCrawler();
+        } else if ("frame".equals(type)) {
             return new FrameCrawler();
         } else {
             log.severe(Message.UNSUPPORTED_CRAWLER_TYPE.with(type));
