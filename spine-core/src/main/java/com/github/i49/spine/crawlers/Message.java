@@ -24,8 +24,10 @@ import java.util.ResourceBundle;
 public enum Message {
     CRAWLER_CONFIGURATION_NOT_FOUND,
     UNSUPPORTED_CRAWLER_TYPE,
-    EXTERNAL_PAGE_WAS_SKIPPED,
-    PAGE_WAS_SAVED
+    DOCUMENT_LOADING_FAILED,
+    PAGE_WAS_SAVED,
+    PAGE_WAS_SKIPPED,
+    COMPLETED
     ;
   
     private static final String BASE_NAME = "com.github.i49.spine.crawlers.messages";

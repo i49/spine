@@ -2,8 +2,13 @@ type: "frame"
 rootLocation: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/Content/"
 firstPage: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/help.htm"
 lastPage: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/help.htm#topics/torque/13-appendices/queueAttributes.htm"
-maxPages: 5
-contentFrame: "#topic"
+maxPages: 3
+frames:
+    contentFrame: "#topic"   
+
+pagingMethod: "CLICK"
+pagingObject: "button.next-topic-button"     
+
 metadata:
     title: "Torque Resource Manager Administrator Guide"
     language: "en-US"

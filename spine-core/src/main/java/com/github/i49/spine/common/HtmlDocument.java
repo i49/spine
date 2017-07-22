@@ -16,6 +16,8 @@
 package com.github.i49.spine.common;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -61,8 +63,8 @@ public class HtmlDocument {
         return doc;
     }
     
-    public HtmlDocument remove(String element) {
-        removeNodes(findElements(element));
+    public HtmlDocument remove(String expression) {
+        removeNodes(findElements(expression));
         return this;
     }
     
@@ -140,18 +142,48 @@ public class HtmlDocument {
     }
     
     private List<Element> findElements(String expression) {
-        List<Element> elements = new ArrayList<>();
         if (expression.contains("#")) {
             String[] parts = expression.split("#");
-            String tagName = parts[0];
-            String id = parts[1];
-            Element found = doc.getElementById(id);
-            if (found != null && (tagName.isEmpty() || found.getLocalName().equals(tagName))) { 
-                elements.add(found);
-            }
-            return elements;
+            return findElementsById(parts[0], parts[1]);
+        } else if (expression.contains(".")) {
+            String[] parts = expression.split("\\.");
+            return findElementsByClass(parts[0], parts[1]);
+        } else {
+            return findElementsByName(expression);
         }
-        NodeList list = doc.getElementsByTagNameNS("*", expression);
+    }
+    
+    private List<Element> findElementsById(String tagName, String id) {
+        Element found = doc.getElementById(id);
+        if (found != null && (tagName.isEmpty() || found.getLocalName().equals(tagName))) { 
+            return Arrays.asList(found);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+    
+    private List<Element> findElementsByClass(String tagName, String className) {
+        if (tagName.isEmpty()) {
+            tagName = "*";
+        }
+        NodeList nodes = doc.getElementsByTagNameNS("*", tagName);
+        List<Element> elements = new ArrayList<>();
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element e = (Element)nodes.item(i);
+            if (e.hasAttribute("class")) {
+                for (String value: e.getAttribute("class").split("\\s")) {
+                    if (value.equals(className)) {
+                        elements.add(e);
+                    }
+                }
+            }
+        }
+        return elements;
+    }
+    
+    private List<Element> findElementsByName(String tagName) {
+        List<Element> elements = new ArrayList<>();
+        NodeList list = doc.getElementsByTagNameNS("*", tagName);
         for (int i = 0; i < list.getLength(); i++) {
             elements.add((Element)list.item(i));
         }

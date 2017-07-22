@@ -29,8 +29,11 @@ public class CrawlerConfiguration {
     private String rootLocation;
     private String publicationName;
     private int maxPages;
-    private String contentFrame;
+    private PagingMethod pagingMethod;
+    private String pagingObject;
+    
     private Metadata metadata;
+    private Frames frames;
    
     public CrawlerConfiguration() {
         this.type = "simple";
@@ -86,12 +89,20 @@ public class CrawlerConfiguration {
         this.maxPages = maxPages;
     }
     
-    public String getContentFrame() {
-        return contentFrame;
+    public PagingMethod getPagingMethod() {
+        return pagingMethod;
     }
 
-    public void setContentFrame(String frame) {
-        this.contentFrame = frame;
+    public void setPagingMethod(PagingMethod pagingMethod) {
+        this.pagingMethod = pagingMethod;
+    }
+
+    public String getPagingObject() {
+        return pagingObject;
+    }
+
+    public void setPagingObject(String pagingObject) {
+        this.pagingObject = pagingObject;
     }
 
     public Metadata getMetadata() {
@@ -100,6 +111,14 @@ public class CrawlerConfiguration {
     
     public void setMetadata(Metadata metadata) {
         this.metadata = metadata;
+    }
+    
+    public Frames getFrames() {
+        return frames;
+    }
+    
+    public void setFrames(Frames frames) {
+        this.frames = frames;
     }
     
     public static class Metadata {
@@ -145,6 +164,22 @@ public class CrawlerConfiguration {
 
         public void setRights(String rights) {
             this.rights = rights;
+        }
+    }
+    
+    public static class Frames {
+        
+        private String contentFrame;
+        
+        public Frames() {
+        }
+
+        public String getContentFrame() {
+            return contentFrame;
+        }
+
+        public void setContentFrame(String contentFrame) {
+            this.contentFrame = contentFrame;
         }
     }
 }

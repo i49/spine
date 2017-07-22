@@ -37,7 +37,7 @@ public class FrameCrawler extends AbstractCrawler {
     @Override
     public void configure(CrawlerConfiguration conf) throws Exception {
         super.configure(conf);
-        this.contentFrame = conf.getContentFrame();
+        this.contentFrame = conf.getFrames().getContentFrame();
     }
 
     @Override

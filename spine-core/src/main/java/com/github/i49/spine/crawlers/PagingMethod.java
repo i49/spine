@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.github.i49.spine.crawlers;
 
-import javafx.scene.web.WebEngine;
-
-public interface Crawler {
-    
-    void configure(CrawlerConfiguration configuration) throws Exception;
-    
-    /**
-     * Starts this crawler.
-     */ 
-    void start(WebEngine webEngine) throws Exception;
-    
-    /**
-     * Finishes this crawler.
-     */
-    void finish();
-
-    void cancel();
+/**
+ */
+public enum PagingMethod {
+    CLICK
 }
-

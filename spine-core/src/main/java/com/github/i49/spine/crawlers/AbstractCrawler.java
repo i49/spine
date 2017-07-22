@@ -32,6 +32,10 @@ import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.events.DocumentEvent;
+import org.w3c.dom.events.EventTarget;
+import org.w3c.dom.events.UIEvent;
+import org.w3c.dom.views.DocumentView;
 
 import com.github.i49.spine.common.HtmlDocument;
 import com.github.i49.spine.common.HtmlDocumentWriter;
@@ -58,6 +62,8 @@ public abstract class AbstractCrawler implements Crawler {
     private String lastPage;
     private String publicationName;
     private int maxPages;
+    private PagingMethod pagingMethod;
+    private String pagingObject;
     
     private Metadata metadata;
   
@@ -68,6 +74,8 @@ public abstract class AbstractCrawler implements Crawler {
     private LayoutPolicy layoutPolicy;
     private DocumentWriter xmlWriter;
     private DocumentWriter htmlWriter;
+    
+    private JSObject window;
     
     protected AbstractCrawler() {
     }
@@ -80,6 +88,8 @@ public abstract class AbstractCrawler implements Crawler {
         this.publicationName = conf.getPublicationName();
         this.maxPages = conf.getMaxPages();
         this.metadata = conf.getMetadata();
+        this.pagingMethod = conf.getPagingMethod();
+        this.pagingObject = conf.getPagingObject();
  
         Path workingDirectory = Paths.get(".");
         this.layoutPolicy = new LayoutPolicy(workingDirectory, this.publicationName);
@@ -95,8 +105,8 @@ public abstract class AbstractCrawler implements Crawler {
         this.pages = new ArrayList<>();
         this.resources = new LinkedHashSet<>();
         
-        JSObject window = (JSObject)webEngine.executeScript("window");
-        window.setMember("crawler", this);
+        this.window = (JSObject)webEngine.executeScript("window");
+        this.window.setMember("crawler", this);
 
         webEngine.getLoadWorker().stateProperty().addListener(this::handleStateChange);
         webEngine.load(this.firatPage);
@@ -108,6 +118,11 @@ public abstract class AbstractCrawler implements Crawler {
             generatePublication();
             Platform.exit();
         });
+    }
+    
+    @Override
+    public void cancel() {
+        Platform.exit();
     }
     
     public WebEngine getWebEngine() {
@@ -122,9 +137,12 @@ public abstract class AbstractCrawler implements Crawler {
     }
 
     private void handleStateChange(ObservableValue<? extends State> value, State oldState, State newState) {
-        log.info("State changed: " + newState.toString());
+        log.fine("State changed to: " + newState.toString());
         if (newState == State.SUCCEEDED) {
             handleDocumentLoaded(webEngine.getDocument());
+        } else if (newState == State.FAILED) {
+            log.severe(Message.DOCUMENT_LOADING_FAILED.with(webEngine.getLocation()));
+            cancel();
         }
     }
   
@@ -154,9 +172,24 @@ public abstract class AbstractCrawler implements Crawler {
     }
     
     private void goToNextPage() {
-        getWebEngine().executeScript(
-                "$('button.next-topic-button').trigger('click');"
-                );
+        if (this.pagingMethod == PagingMethod.CLICK) {
+            clickToGoNext();
+        }
+    }
+    
+    private void clickToGoNext() {
+        Document doc = getWebEngine().getDocument();
+        HtmlDocument html = HtmlDocument.of(doc);
+        Element element = html.find(this.pagingObject);
+        if (element == null) {
+            return;
+        }
+        DocumentEvent docEvent = (DocumentEvent)doc;
+        DocumentView docView = (DocumentView)doc;
+        UIEvent event = (UIEvent)docEvent.createEvent("UIEvents");
+        event.initUIEvent("click", true, true, docView.getDefaultView(), 0);
+        EventTarget target = (EventTarget)element;
+        target.dispatchEvent(event);
     }
     
     protected void addPage(Document doc) {
@@ -198,7 +231,7 @@ public abstract class AbstractCrawler implements Crawler {
             String local = location.substring(this.rootLocation.length());
             return Paths.get(local);
         } else {
-            log.warning(Message.EXTERNAL_PAGE_WAS_SKIPPED.with(location));
+            log.warning(Message.PAGE_WAS_SKIPPED.with(location));
             return null;
         }
     }
@@ -252,7 +285,7 @@ public abstract class AbstractCrawler implements Crawler {
             Path path = layoutPolicy.getPublicationContentDirectory().resolve("package.opf");
             this.xmlWriter.writeDocumentAt(path, doc);
             writePublication(this.publicationName + ".epub");
-            log.info("Completed.");
+            log.info(Message.COMPLETED.toString());
         } catch (Exception e) {
             log.severe(e.getMessage());
         }
