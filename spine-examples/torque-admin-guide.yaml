@@ -1,8 +1,8 @@
-type: "frame"
+type: "FRAME"
 rootLocation: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/Content/"
 firstPage: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/help.htm"
 lastPage: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/help.htm#topics/torque/13-appendices/queueAttributes.htm"
-maxPages: 3
+#maxPages: 3
 frames:
     contentFrame: "#topic"   
 
@@ -14,3 +14,17 @@ metadata:
     language: "en-US"
     authors: ["Adaptive Computing"]
     rights: "© 2017 Adaptive Computing"
+
+converters:
+    - 
+        type: "PROCEDURAL"
+        commands:
+            - remove: "script"
+            - remove: "meta"
+            - remove: "link"
+            - unwrap: "concept"
+            - remove: ".MCWebHelpFramesetLink"
+            - remove: ".MCBreadcrumbsBox_0"
+            - removeDataAttributes
+            - addMetaCharset: "utf-8"
+            

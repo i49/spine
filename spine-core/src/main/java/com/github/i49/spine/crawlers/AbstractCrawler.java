@@ -39,12 +39,14 @@ import org.w3c.dom.views.DocumentView;
 
 import com.github.i49.spine.common.HtmlDocument;
 import com.github.i49.spine.common.HtmlDocumentWriter;
+import com.github.i49.spine.common.DocumentConverter;
 import com.github.i49.spine.common.DocumentWriter;
 import com.github.i49.spine.common.Documents;
 import com.github.i49.spine.common.HtmlSpec;
 import com.github.i49.spine.common.PackageDocumentBuilder;
 import com.github.i49.spine.common.PublicationWriter;
 import com.github.i49.spine.common.XmlDocumentWriter;
+import com.github.i49.spine.crawlers.CrawlerConfiguration.Converter;
 import com.github.i49.spine.crawlers.CrawlerConfiguration.Metadata;
 
 import javafx.application.Platform;
@@ -56,6 +58,7 @@ import netscape.javascript.JSObject;
 public abstract class AbstractCrawler implements Crawler {
 
     protected static final Logger log = Logger.getLogger(AbstractCrawler.class.getName());
+    private static final String PACKAGE_DOCUMENT_NAME = "package.opf";
     
     private String rootLocation;
     private String firatPage;
@@ -66,6 +69,7 @@ public abstract class AbstractCrawler implements Crawler {
     private String pagingObject;
     
     private Metadata metadata;
+    private List<DocumentConverter> converters;
   
     private List<Path> pages;
     private Set<Path> resources;
@@ -78,6 +82,7 @@ public abstract class AbstractCrawler implements Crawler {
     private JSObject window;
     
     protected AbstractCrawler() {
+        this.converters = new ArrayList<>();
     }
     
     @Override
@@ -90,7 +95,9 @@ public abstract class AbstractCrawler implements Crawler {
         this.metadata = conf.getMetadata();
         this.pagingMethod = conf.getPagingMethod();
         this.pagingObject = conf.getPagingObject();
- 
+
+        configuraConverters(conf.getConverters());
+        
         Path workingDirectory = Paths.get(".");
         this.layoutPolicy = new LayoutPolicy(workingDirectory, this.publicationName);
         this.xmlWriter = new XmlDocumentWriter();
@@ -194,7 +201,7 @@ public abstract class AbstractCrawler implements Crawler {
     
     protected void addPage(Document doc) {
         String location = doc.getDocumentURI();
-        Path local = mapToLocal(location);
+        Path local = mapToLocalPath(location);
         if (local == null) {
             return;
         }
@@ -212,21 +219,19 @@ public abstract class AbstractCrawler implements Crawler {
     
     protected Document convertDocument(Document doc) throws Exception {
         Document copied = Documents.copy(doc);
-        HtmlDocument.of(copied)
-                .toLowerCase()
-                .remove("script")
-                .remove("meta")
-                .remove("link")
-                .unwrap("concept")
-                .removeContainingClass("MCWebHelpFramesetLink")
-                .removeContainingClass("MCBreadcrumbsBox_0")
-                .removeDataAttributes()
-                .addMetaCharset("utf-8")
-                ;
+        for (DocumentConverter converter: this.converters) {
+            converter.convert(copied);
+        }
         return copied;
     }
     
-    private Path mapToLocal(String location) {
+    /**
+     * Maps a remote location to a path on the local filesystem.
+     * 
+     * @param location the remote location.
+     * @return the path on the local filesystem. can be {@code null}.
+     */
+    private Path mapToLocalPath(String location) {
         if  (location.startsWith(this.rootLocation.toString())) {
             String local = location.substring(this.rootLocation.length());
             return Paths.get(local);
@@ -251,7 +256,7 @@ public abstract class AbstractCrawler implements Crawler {
     }
     
     private void writeResource(URI location) throws IOException {
-        Path local = mapToLocal(location.toString());
+        Path local = mapToLocalPath(location.toString());
         if (local == null) {
             return;
         }
@@ -263,7 +268,7 @@ public abstract class AbstractCrawler implements Crawler {
     }
   
     private void downloadResource(URI remote, Path local) throws IOException {
-        log.info("downloading: " + remote.toString());
+        log.info(Message.DOWNLOADING_RESOURCE.with(remote.toString()));
         Files.createDirectories(local.getParent());
         URLConnection conn = remote.toURL().openConnection();
         String userAgent = getWebEngine().getUserAgent();
@@ -274,15 +279,14 @@ public abstract class AbstractCrawler implements Crawler {
     }
     
     private void generatePublication() {
-        log.info("Building the package document...");
+        log.info(Message.GENERATING_PACKAGE_DOCUMENT.with(PACKAGE_DOCUMENT_NAME));
         PackageDocumentBuilder builder = new PackageDocumentBuilder();
         builder.pages(this.pages).resoures(this.resources);
         buildPackage(builder);
         Document doc = builder.build();
 
         try {
-            log.info("Writing the package document...");
-            Path path = layoutPolicy.getPublicationContentDirectory().resolve("package.opf");
+            Path path = layoutPolicy.getPublicationContentDirectory().resolve(PACKAGE_DOCUMENT_NAME);
             this.xmlWriter.writeDocumentAt(path, doc);
             writePublication(this.publicationName + ".epub");
             log.info(Message.COMPLETED.toString());
@@ -291,10 +295,17 @@ public abstract class AbstractCrawler implements Crawler {
         }
     }
 
+    protected void buildPackage(PackageDocumentBuilder builder) {
+        builder.title(metadata.getTitle())
+               .language(metadata.getLanguage())
+               .authors(metadata.getAuthors())
+               .rights(metadata.getRights());
+    }
+
     private void writePublication(String fileName) throws IOException {
         Path baseDir = layoutPolicy.getPublicationDirectory();
         Path target = layoutPolicy.getPublicationFile();
-        log.info("Writing the publication file: " + target.toString());
+        log.info(Message.GENERATING_PUBLICATION.with(target.toString()));
         PublicationWriter writer = new PublicationWriter(baseDir);
         writer.writeTo(target);
     }
@@ -307,10 +318,18 @@ public abstract class AbstractCrawler implements Crawler {
         }
     }
     
-    protected void buildPackage(PackageDocumentBuilder builder) {
-        builder.title(metadata.getTitle())
-               .language(metadata.getLanguage())
-               .authors(metadata.getAuthors())
-               .rights(metadata.getRights());
+    /**
+     * Configures the document converters.
+     * 
+     * @param configurations the configuration for the converters.
+     */
+    private void configuraConverters(List<Converter> configurations) {
+        DocumentConverterFactory factory = DocumentConverterFactory.getInstance();
+        for (Converter c: configurations) {
+            DocumentConverter converter = factory.createConverter(c);
+            if (converter != null) {
+                this.converters.add(converter);
+            }
+        }
     }
 }

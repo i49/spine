@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class CrawlerConfiguration {
     
-    private String type;
+    private CrawlerType type;
     private String firstPage;
     private String lastPage;
     private String rootLocation;
@@ -34,18 +34,20 @@ public class CrawlerConfiguration {
     
     private Metadata metadata;
     private Frames frames;
-   
+    private List<Converter> converters; 
+    
     public CrawlerConfiguration() {
-        this.type = "simple";
+        this.type = CrawlerType.SIMPLE;
         this.maxPages = Integer.MAX_VALUE;
         this.metadata = new Metadata();
+        this.converters = new ArrayList<>();
     }
     
-    public String getType() {
+    public CrawlerType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(CrawlerType type) {
         this.type = type;
     }
 
@@ -121,6 +123,14 @@ public class CrawlerConfiguration {
         this.frames = frames;
     }
     
+    public List<Converter> getConverters() {
+        return converters;
+    }
+    
+    public void setConverters(List<Converter> converters) {
+        this.converters = converters;
+    }
+    
     public static class Metadata {
         
         private String title;
@@ -180,6 +190,28 @@ public class CrawlerConfiguration {
 
         public void setContentFrame(String contentFrame) {
             this.contentFrame = contentFrame;
+        }
+    }
+    
+    public static class Converter {
+        
+        private ConverterType type;
+        private List<Object> commands;
+
+        public ConverterType getType() {
+            return type;
+        }
+        
+        public void setType(ConverterType type) {
+            this.type = type;
+        }
+        
+        public List<Object> getCommands() {
+            return commands;
+        }
+        
+        public void setCommands(List<Object> commands) {
+            this.commands = commands;
         }
     }
 }

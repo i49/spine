@@ -106,12 +106,13 @@ public class Browser extends Application {
         }
     }
     
-    private static Crawler createCrawler(String type) {
-        if ("simple".equals(type)) {
+    private static Crawler createCrawler(CrawlerType type) {
+        switch (type) {
+        case SIMPLE:
             return new SimpleCrawler();
-        } else if ("frame".equals(type)) {
+        case FRAME:
             return new FrameCrawler();
-        } else {
+        default:
             log.severe(Message.UNSUPPORTED_CRAWLER_TYPE.with(type));
             return null;
         }
