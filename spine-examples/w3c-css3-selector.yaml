@@ -1,0 +1,19 @@
+type: "BASIC"
+rootLocation: "http://www.w3.org/TR/css3-selectors/"
+firstPage: "http://www.w3.org/TR/css3-selectors/"
+lastPage: "http://www.w3.org/TR/css3-selectors/"
+
+metadata:
+    title: "Selectors Level 3"
+    language: "en"
+    authors: ["Tantek Çelik"]
+    rights: "World Wide Web Consortium"
+
+converters:
+    - 
+        type: "PROCEDURAL"
+        commands:
+            - remove: "link"
+            - addMetaCharset: "utf-8"
+            
+            

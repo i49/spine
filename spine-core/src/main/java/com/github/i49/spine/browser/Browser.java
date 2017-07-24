@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.i49.spine.crawlers;
+package com.github.i49.spine.browser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +31,14 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
 import org.yaml.snakeyaml.Yaml;
+
+import com.github.i49.spine.crawlers.Crawler;
+import com.github.i49.spine.crawlers.CrawlerConfiguration;
+import com.github.i49.spine.crawlers.CrawlerException;
+import com.github.i49.spine.crawlers.CrawlerType;
+import com.github.i49.spine.crawlers.FrameCrawler;
+import com.github.i49.spine.crawlers.BasicCrawler;
+import com.github.i49.spine.message.Message;
 
 /**
  * Web browser application.
@@ -108,8 +116,8 @@ public class Browser extends Application {
     
     private static Crawler createCrawler(CrawlerType type) {
         switch (type) {
-        case SIMPLE:
-            return new SimpleCrawler();
+        case BASIC:
+            return new BasicCrawler();
         case FRAME:
             return new FrameCrawler();
         default:

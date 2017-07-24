@@ -6,8 +6,9 @@ lastPage: "http://docs.adaptivecomputing.com/torque/6-1-1/adminGuide/help.htm#to
 frames:
     contentFrame: "#topic"   
 
-pagingMethod: "CLICK"
-pagingObject: "button.next-topic-button"     
+pager:
+    method: "CLICK"
+    target: "button.next-topic-button"
 
 metadata:
     title: "Torque Resource Manager Administrator Guide"

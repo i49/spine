@@ -16,10 +16,12 @@
 
 package com.github.i49.spine.crawlers;
 
+import org.w3c.dom.Document;
+
 /**
- * Predefined types of crawlers.
+ *
  */
-public enum CrawlerType {
-    BASIC,
-    FRAME
+public interface Pager {
+    
+    boolean goNext(Document doc);
 }

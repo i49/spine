@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.i49.spine.crawlers;
+package com.github.i49.spine.message;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
@@ -33,7 +33,7 @@ public enum Message {
     COMPLETED
     ;
   
-    private static final String BASE_NAME = "com.github.i49.spine.crawlers.messages";
+    private static final String BASE_NAME = "com.github.i49.spine.message.messages";
     private static final ResourceBundle bundle = ResourceBundle.getBundle(BASE_NAME);
    
     @Override

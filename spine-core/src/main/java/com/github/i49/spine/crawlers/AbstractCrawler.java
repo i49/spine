@@ -32,12 +32,7 @@ import java.util.logging.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.events.DocumentEvent;
-import org.w3c.dom.events.EventTarget;
-import org.w3c.dom.events.UIEvent;
-import org.w3c.dom.views.DocumentView;
 
-import com.github.i49.spine.common.HtmlDocument;
 import com.github.i49.spine.common.HtmlDocumentWriter;
 import com.github.i49.spine.common.DocumentConverter;
 import com.github.i49.spine.common.DocumentWriter;
@@ -48,6 +43,7 @@ import com.github.i49.spine.common.PublicationWriter;
 import com.github.i49.spine.common.XmlDocumentWriter;
 import com.github.i49.spine.crawlers.CrawlerConfiguration.Converter;
 import com.github.i49.spine.crawlers.CrawlerConfiguration.Metadata;
+import com.github.i49.spine.message.Message;
 
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -55,19 +51,22 @@ import javafx.concurrent.Worker.State;
 import javafx.scene.web.WebEngine;
 import netscape.javascript.JSObject;
 
+/**
+ * A skeletal implementation of {@link Crawler}.
+ */
 public abstract class AbstractCrawler implements Crawler {
 
     protected static final Logger log = Logger.getLogger(AbstractCrawler.class.getName());
     private static final String PACKAGE_DOCUMENT_NAME = "package.opf";
+    private static final String INDEX_NAME = "index.html";
     
     private String rootLocation;
     private String firatPage;
     private String lastPage;
     private String publicationName;
     private int maxPages;
-    private PagingMethod pagingMethod;
-    private String pagingObject;
     
+    private Pager pager; 
     private Metadata metadata;
     private List<DocumentConverter> converters;
   
@@ -93,8 +92,7 @@ public abstract class AbstractCrawler implements Crawler {
         this.publicationName = conf.getPublicationName();
         this.maxPages = conf.getMaxPages();
         this.metadata = conf.getMetadata();
-        this.pagingMethod = conf.getPagingMethod();
-        this.pagingObject = conf.getPagingObject();
+        this.pager = createPager(conf.getPager());
 
         configuraConverters(conf.getConverters());
         
@@ -158,45 +156,33 @@ public abstract class AbstractCrawler implements Crawler {
     protected void processContent(Document doc) {
         try {
             addPage(doc);
-            if (hasMorePages()) {
-                goToNextPage();
-            } else {
-                finish();
-            }
+            finishPage();
         } catch (Exception e) {
             log.severe(e.getMessage());
             Platform.exit();
         }
     }
+    
+    private void finishPage() {
+        Document doc = getWebEngine().getDocument();
+        if (!hasMorePages(doc) || !goToNextPage(doc)) {
+            finish();
+        }
+    }
 
-    private boolean hasMorePages() {
+    private boolean hasMorePages(Document doc) {
         if (pages.size() >= maxPages) {
             return false;
         }
-        Document doc = getWebEngine().getDocument();
         String location = doc.getDocumentURI();
         return !location.startsWith(lastPage);
     }
     
-    private void goToNextPage() {
-        if (this.pagingMethod == PagingMethod.CLICK) {
-            clickToGoNext();
+    private boolean goToNextPage(Document doc) {
+        if (this.pager == null) {
+            return false;
         }
-    }
-    
-    private void clickToGoNext() {
-        Document doc = getWebEngine().getDocument();
-        HtmlDocument html = HtmlDocument.of(doc);
-        Element element = html.find(this.pagingObject);
-        if (element == null) {
-            return;
-        }
-        DocumentEvent docEvent = (DocumentEvent)doc;
-        DocumentView docView = (DocumentView)doc;
-        UIEvent event = (UIEvent)docEvent.createEvent("UIEvents");
-        event.initUIEvent("click", true, true, docView.getDefaultView(), 0);
-        EventTarget target = (EventTarget)element;
-        target.dispatchEvent(event);
+        return pager.goNext(doc);
     }
     
     protected void addPage(Document doc) {
@@ -234,6 +220,9 @@ public abstract class AbstractCrawler implements Crawler {
     private Path mapToLocalPath(String location) {
         if  (location.startsWith(this.rootLocation.toString())) {
             String local = location.substring(this.rootLocation.length());
+            if (local.isEmpty() || local.endsWith("/")) {
+                local = local.concat(INDEX_NAME);
+            }
             return Paths.get(local);
         } else {
             log.warning(Message.PAGE_WAS_SKIPPED.with(location));
@@ -330,6 +319,15 @@ public abstract class AbstractCrawler implements Crawler {
             if (converter != null) {
                 this.converters.add(converter);
             }
+        }
+    }
+    
+    private static Pager createPager(CrawlerConfiguration.Pager conf) {
+        switch (conf.getMethod()) {
+        case CLICK:
+            return ClickingPager.create(conf.getTarget());
+        default:
+            return null;
         }
     }
 }

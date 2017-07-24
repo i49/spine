@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.i49.spine.crawlers;
-
 /**
- * Predefined types of crawlers.
+ * Provides message bundle.
  */
-public enum CrawlerType {
-    BASIC,
-    FRAME
-}
+package com.github.i49.spine.message;

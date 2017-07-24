@@ -19,5 +19,6 @@ package com.github.i49.spine.crawlers;
 /**
  */
 public enum PagingMethod {
+    NONE,
     CLICK
 }

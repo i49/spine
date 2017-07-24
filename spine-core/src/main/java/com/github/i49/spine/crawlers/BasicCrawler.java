@@ -16,10 +16,16 @@
 
 package com.github.i49.spine.crawlers;
 
+import org.w3c.dom.Document;
+
 /**
- * Predefined types of crawlers.
+ * Simple crawler for parsing web pages without iframes.
  */
-public enum CrawlerType {
-    BASIC,
-    FRAME
+public class BasicCrawler extends AbstractCrawler {
+
+    @Override
+    protected void handleDocumentLoaded(Document doc) {
+        log.info("Document was loaded.");
+        processContent(doc);
+    }
 }

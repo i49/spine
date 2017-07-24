@@ -16,6 +16,7 @@
 package com.github.i49.spine.crawlers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,16 +30,16 @@ public class CrawlerConfiguration {
     private String rootLocation;
     private String publicationName;
     private int maxPages;
-    private PagingMethod pagingMethod;
-    private String pagingObject;
     
+    private Pager pager;
     private Metadata metadata;
     private Frames frames;
     private List<Converter> converters; 
     
     public CrawlerConfiguration() {
-        this.type = CrawlerType.SIMPLE;
+        this.type = CrawlerType.BASIC;
         this.maxPages = Integer.MAX_VALUE;
+        this.pager = new Pager();
         this.metadata = new Metadata();
         this.converters = new ArrayList<>();
     }
@@ -60,6 +61,9 @@ public class CrawlerConfiguration {
     }
     
     public String getLastPage() {
+        if (lastPage == null) {
+            return firstPage;
+        }
         return lastPage;
     }
     
@@ -91,20 +95,12 @@ public class CrawlerConfiguration {
         this.maxPages = maxPages;
     }
     
-    public PagingMethod getPagingMethod() {
-        return pagingMethod;
+    public Pager getPager() {
+        return pager;
     }
-
-    public void setPagingMethod(PagingMethod pagingMethod) {
-        this.pagingMethod = pagingMethod;
-    }
-
-    public String getPagingObject() {
-        return pagingObject;
-    }
-
-    public void setPagingObject(String pagingObject) {
-        this.pagingObject = pagingObject;
+    
+    public void setPager(Pager pager) {
+        this.pager = pager;
     }
 
     public Metadata getMetadata() {
@@ -197,6 +193,10 @@ public class CrawlerConfiguration {
         
         private ConverterType type;
         private List<Object> commands;
+        
+        public Converter() {
+            this.commands = Collections.emptyList();
+        }
 
         public ConverterType getType() {
             return type;
@@ -211,7 +211,35 @@ public class CrawlerConfiguration {
         }
         
         public void setCommands(List<Object> commands) {
-            this.commands = commands;
+            if (commands != null) {
+                this.commands = commands;
+            }
+        }
+    }
+    
+    public static class Pager {
+        
+        private PagingMethod method;
+        private String target;
+        
+        public Pager() {
+            this.method = PagingMethod.NONE;
+        }
+  
+        public PagingMethod getMethod() {
+            return method;
+        }
+        
+        public void setMethod(PagingMethod method) {
+            this.method = method;
+        }
+        
+        public String getTarget() {
+            return target;
+        }
+        
+        public void setTarget(String target) {
+            this.target = target;
         }
     }
 }
