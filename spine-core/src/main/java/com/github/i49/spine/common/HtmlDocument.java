@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,6 @@
 package com.github.i49.spine.common;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -26,51 +24,57 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+
+import com.github.i49.cascade.api.Selector;
+import com.github.i49.cascade.api.SelectorCompiler;
 
 public class HtmlDocument {
-    
+
     private final Document doc;
+    private final SelectorCompiler compiler;
+
     private final Element html;
     private final Element head;
-    
+
     public static HtmlDocument of(Document doc) {
         return new HtmlDocument(doc);
     }
-    
+
     private HtmlDocument(Document doc) {
         this.doc = doc;
+        this.compiler = SelectorCompiler.create();
+
         this.html = this.doc.getDocumentElement();
         toLowerCase(this.doc, this.html);
         this.head = find("head");
-    }  
-    
+    }
+
+    public Document getDocument() {
+        return doc;
+    }
+
     public HtmlDocument addMetaCharset(String value) {
         Element meta = doc.createElementNS(HtmlSpec.NAMESPACE_URL, "meta");
         meta.setAttribute("charset", value);
         this.head.insertBefore(meta, this.head.getFirstChild());
         return this;
     }
-    
+
     public Element find(String expression) {
-        List<Element> elements = findElements(expression);
+        List<Element> elements = select(expression);
         return elements.size() > 0 ? elements.get(0) : null;
     }
-    
-    public Document getDocument() {
-        return doc;
-    }
-    
+
     public HtmlDocument remove(String expression) {
-        for (Node node: findElements(expression)) {
-            Node parent = node.getParentNode();
+        for (Element element: select(expression)) {
+            Node parent = element.getParentNode();
             if (parent != null) {
-                parent.removeChild(node);
+                parent.removeChild(element);
             }
         }
         return this;
     }
-    
+
     public HtmlDocument removeAttributesWithPrefix(String prefix) {
         List<Attr> attributes = new ArrayList<>();
         visitAttributes(this.html, a->{
@@ -81,13 +85,13 @@ public class HtmlDocument {
         removeAttributes(attributes);
         return this;
     }
-    
+
     public HtmlDocument removeDataAttributes() {
         return removeAttributesWithPrefix("data-");
     }
-    
+
     public HtmlDocument unwrap(String expression) {
-        for (Element wrapper: findElements(expression)) {
+        for (Element wrapper: select(expression)) {
             Node parent = wrapper.getParentNode();
             while (wrapper.hasChildNodes()) {
                 parent.insertBefore(wrapper.getFirstChild(), wrapper);
@@ -96,7 +100,7 @@ public class HtmlDocument {
        }
         return this;
     }
-    
+
     private static void toLowerCase(Document doc, Element html) {
         visitNodes(html, node->{
             if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -109,56 +113,12 @@ public class HtmlDocument {
             }
         });
     }
-    
-    private List<Element> findElements(String expression) {
-        if (expression.contains("#")) {
-            String[] parts = expression.split("#");
-            return findElementsById(parts[0], parts[1]);
-        } else if (expression.contains(".")) {
-            String[] parts = expression.split("\\.");
-            return findElementsByClass(parts[0], parts[1]);
-        } else {
-            return findElementsByName(expression);
-        }
+
+    private List<Element> select(String expression) {
+        Selector selector = compiler.compile(expression);
+        return selector.select(doc.getDocumentElement());
     }
-    
-    private List<Element> findElementsById(String tagName, String id) {
-        Element found = doc.getElementById(id);
-        if (found != null && (tagName.isEmpty() || found.getLocalName().equals(tagName))) { 
-            return Arrays.asList(found);
-        } else {
-            return Collections.emptyList();
-        }
-    }
-    
-    private List<Element> findElementsByClass(String tagName, String className) {
-        if (tagName.isEmpty()) {
-            tagName = "*";
-        }
-        NodeList nodes = doc.getElementsByTagNameNS("*", tagName);
-        List<Element> elements = new ArrayList<>();
-        for (int i = 0; i < nodes.getLength(); i++) {
-            Element e = (Element)nodes.item(i);
-            if (e.hasAttribute("class")) {
-                for (String value: e.getAttribute("class").split("\\s")) {
-                    if (value.equals(className)) {
-                        elements.add(e);
-                    }
-                }
-            }
-        }
-        return elements;
-    }
-    
-    private List<Element> findElementsByName(String tagName) {
-        List<Element> elements = new ArrayList<>();
-        NodeList list = doc.getElementsByTagNameNS("*", tagName);
-        for (int i = 0; i < list.getLength(); i++) {
-            elements.add((Element)list.item(i));
-        }
-        return elements;
-    }
-    
+
     private static void visitNodes(Node root, Consumer<Node> visitor) {
         if (root == null) {
             return;
@@ -171,7 +131,7 @@ public class HtmlDocument {
             child = next;
         }
     }
-    
+
     private static void visitAttributes(Node root, Consumer<Attr> visitor) {
         visitNodes(root, node->{
             if (node.getNodeType() == Node.ELEMENT_NODE) {
@@ -184,7 +144,7 @@ public class HtmlDocument {
             }
         });
     }
-    
+
     private static void removeAttributes(List<Attr> attributes) {
         for (Attr a: attributes) {
             Element e = a.getOwnerElement();

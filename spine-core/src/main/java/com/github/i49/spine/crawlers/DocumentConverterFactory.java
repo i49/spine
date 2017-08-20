@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,13 +25,13 @@ import com.github.i49.spine.common.ProceduralDocumentConverter;
  *
  */
 public class DocumentConverterFactory {
-    
+
     private static final DocumentConverterFactory SINGLETON = new DocumentConverterFactory();
-    
+
     public static DocumentConverterFactory getInstance() {
         return SINGLETON;
     }
-    
+
     private DocumentConverterFactory() {
     }
 
@@ -43,7 +43,7 @@ public class DocumentConverterFactory {
             return null;
         }
     }
-    
+
     private DocumentConverter createPreceduralConverter(CrawlerConfiguration.Converter conf) {
         ProceduralDocumentConverter.Builder builder =   ProceduralDocumentConverter.builder();
         for (Object command: conf.getCommands()) {
@@ -58,8 +58,8 @@ public class DocumentConverterFactory {
                     String expression = (String)map.get("remove");
                     builder.remove(expression);
                 } else if (map.containsKey("unwrap")){
-                    String charset = (String)map.get("unwrap");
-                    builder.unwrap(charset);
+                    String expression = (String)map.get("unwrap");
+                    builder.unwrap(expression);
                 } else if (map.containsKey("addMetaCharset")){
                     String charset = (String)map.get("addMetaCharset");
                     builder.addMetaCharset(charset);
