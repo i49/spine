@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
     
     <properties>
-        <cascade.version>3.0.0.SNAPSHOT</cascade.version>
+        <cascade.version>3.0.0</cascade.version>
     </properties>
 
     <dependencies>
@@ -42,7 +42,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.i49.spine.crawlers.Browser</mainClass>
+                            <mainClass>com.github.i49.spine.browser.Browser</mainClass>
                             <addClasspath>true</addClasspath>    
                         </manifest>    
                     </archive>
