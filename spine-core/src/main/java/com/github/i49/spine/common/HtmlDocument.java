@@ -25,8 +25,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
-import com.github.i49.cascade.api.Selector;
-import com.github.i49.cascade.api.SelectorCompiler;
+import io.github.i49.cascade.api.Selector;
+import io.github.i49.cascade.api.SelectorCompiler;
 
 public class HtmlDocument {
 

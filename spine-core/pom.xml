@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
     
     <properties>
-        <cascade.version>3.0.0</cascade.version>
+        <cascade.version>3.1.0</cascade.version>
     </properties>
 
     <dependencies>
@@ -23,12 +23,12 @@
             <version>1.18</version>
         </dependency>
         <dependency>
-            <groupId>com.github.i49</groupId>
+            <groupId>io.github.i49</groupId>
             <artifactId>cascade-api</artifactId>
             <version>${cascade.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.i49</groupId>
+            <groupId>io.github.i49</groupId>
             <artifactId>cascade-core</artifactId>
             <version>${cascade.version}</version>
             <scope>runtime</scope>
