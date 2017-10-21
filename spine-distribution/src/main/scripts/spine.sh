@@ -1,3 +1,3 @@
 #!/bin/bash
 
-java -jar lib/spine-core-${project.version}.jar "$@"
+java -jar lib/spine-${project.version}.jar "$@"
