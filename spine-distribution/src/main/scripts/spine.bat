@@ -1,2 +1,2 @@
 @echo off
-java -jar lib\spine-${project.version}.jar %*
+java -p lib --add-modules java.sql --add-opens java.desktop/java.beans=snakeyaml -m spine/io.github.i49.spine.browser.Browser %*
