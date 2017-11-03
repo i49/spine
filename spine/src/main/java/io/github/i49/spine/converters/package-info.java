@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.i49.spine.crawlers;
 
-import io.github.i49.spine.converters.DocumentConverter;
-import javafx.scene.web.WebEngine;
-
-public interface Crawler {
-    
-    void configure(CrawlerConfiguration configuration) throws Exception;
-    
-    void addConverter(DocumentConverter converter);
-    
-    /**
-     * Starts this crawler.
-     */ 
-    void start(WebEngine webEngine) throws Exception;
-    
-    /**
-     * Finishes this crawler.
-     */
-    void finish();
-
-    void cancel();
-}
-
+/**
+ * Provides document converters.
+ */
+package io.github.i49.spine.converters;

@@ -4,15 +4,22 @@ firstPage: "https://openmath.github.io/standard/om20-2017-07-22/omstd20.html"
 lastPage: "https://openmath.github.io/standard/om20-2017-07-22/omstd20.html"
 
 metadata:
-    title: "The OpenMath Standard"
-    language: "en"
-    authors: ["The OpenMath Society"]
-    rights: "Copyright 2000–2017 The OpenMath Society"
+  title: "The OpenMath Standard"
+  language: "en"
+  authors: ["The OpenMath Society"]
+  rights: "Copyright 2000-2017 The OpenMath Society"
 
 converters:
-    -
-        type: "PROCEDURAL"
-        commands:
-            - remove: "link, style, script"
-            - unwrap: "div"
-            - addMetaCharset: "utf-8"
+  - type: "PROCEDURAL"
+    commands:
+      - remove: "link, style, script"
+      - replace:
+          source: "div[class=mdata]"
+          target: "p"
+      - replace:
+          source: "div[class=figure]"
+          target: "figure"
+      - replace:
+          source: "div[class=caption]"
+          target: "figcaption"
+      - addMetaCharset: "utf-8"

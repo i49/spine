@@ -33,7 +33,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import io.github.i49.spine.common.DocumentConverter;
 import io.github.i49.spine.common.DocumentWriter;
 import io.github.i49.spine.common.Documents;
 import io.github.i49.spine.common.HtmlDocumentWriter;
@@ -41,7 +40,7 @@ import io.github.i49.spine.common.HtmlSpec;
 import io.github.i49.spine.common.PackageDocumentBuilder;
 import io.github.i49.spine.common.PublicationWriter;
 import io.github.i49.spine.common.XmlDocumentWriter;
-import io.github.i49.spine.crawlers.CrawlerConfiguration.Converter;
+import io.github.i49.spine.converters.DocumentConverter;
 import io.github.i49.spine.crawlers.CrawlerConfiguration.Metadata;
 import io.github.i49.spine.message.Message;
 import javafx.application.Platform;
@@ -67,7 +66,7 @@ public abstract class AbstractCrawler implements Crawler {
     
     private Pager pager; 
     private Metadata metadata;
-    private List<DocumentConverter> converters;
+    private final List<DocumentConverter> converters;
   
     private List<Path> pages;
     private Set<Path> resources;
@@ -93,8 +92,6 @@ public abstract class AbstractCrawler implements Crawler {
         this.metadata = conf.getMetadata();
         this.pager = createPager(conf.getPager());
 
-        configuraConverters(conf.getConverters());
-        
         Path workingDirectory = Paths.get(".");
         this.layoutPolicy = new LayoutPolicy(workingDirectory, this.publicationName);
         this.xmlWriter = new XmlDocumentWriter();
@@ -102,6 +99,11 @@ public abstract class AbstractCrawler implements Crawler {
         initializeDirectories(this.layoutPolicy);
      }
 
+    @Override
+    public void addConverter(DocumentConverter converter) {
+        this.converters.add(converter);
+    }
+    
     @Override
     public void start(WebEngine webEngine) throws Exception {
         this.webEngine = webEngine;
@@ -303,21 +305,6 @@ public abstract class AbstractCrawler implements Crawler {
         Path target = targetDir.resolve(name);
         try (InputStream in = getClass().getResourceAsStream(name)) {
             Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-        }
-    }
-    
-    /**
-     * Configures the document converters.
-     * 
-     * @param configurations the configuration for the converters.
-     */
-    private void configuraConverters(List<Converter> configurations) {
-        DocumentConverterFactory factory = DocumentConverterFactory.getInstance();
-        for (Converter c: configurations) {
-            DocumentConverter converter = factory.createConverter(c);
-            if (converter != null) {
-                this.converters.add(converter);
-            }
         }
     }
     

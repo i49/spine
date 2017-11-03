@@ -31,12 +31,9 @@ import javafx.stage.Stage;
 
 import org.yaml.snakeyaml.Yaml;
 
-import io.github.i49.spine.crawlers.BasicCrawler;
 import io.github.i49.spine.crawlers.Crawler;
 import io.github.i49.spine.crawlers.CrawlerConfiguration;
 import io.github.i49.spine.crawlers.CrawlerException;
-import io.github.i49.spine.crawlers.CrawlerType;
-import io.github.i49.spine.crawlers.FrameCrawler;
 import io.github.i49.spine.message.Message;
 
 /**
@@ -57,11 +54,11 @@ public class BrowserApplication extends Application {
             String confPath = (args.size() > 0) ? args.get(0) : DEFAULT_CONFIGURATION_NAME;
             
             CrawlerConfiguration configuration = loadCrawlerConfiguration(Paths.get(confPath));
-            this.crawler = createCrawler(configuration.getType());
+            CrawlerBuilder builder = new CrawlerBuilder();
+            this.crawler = builder.build(configuration);
             if (this.crawler == null) {
                 return;
             }
-            this.crawler.configure(configuration);
             initialized = true;
         } catch (Exception e) {
             log.severe(e.getMessage());
@@ -110,18 +107,6 @@ public class BrowserApplication extends Application {
             return fileName.substring(0, lastIndex);
         } else {
             return fileName;
-        }
-    }
-    
-    private static Crawler createCrawler(CrawlerType type) {
-        switch (type) {
-        case BASIC:
-            return new BasicCrawler();
-        case FRAME:
-            return new FrameCrawler();
-        default:
-            log.severe(Message.UNSUPPORTED_CRAWLER_TYPE.with(type));
-            return null;
         }
     }
 }

@@ -1,5 +1,4 @@
 /* 
- * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.i49.spine.crawlers;
 
-import io.github.i49.spine.converters.DocumentConverter;
-import javafx.scene.web.WebEngine;
+package io.github.i49.spine.converters;
 
-public interface Crawler {
-    
-    void configure(CrawlerConfiguration configuration) throws Exception;
-    
-    void addConverter(DocumentConverter converter);
-    
-    /**
-     * Starts this crawler.
-     */ 
-    void start(WebEngine webEngine) throws Exception;
-    
-    /**
-     * Finishes this crawler.
-     */
-    void finish();
+import org.w3c.dom.Document;
 
-    void cancel();
+/**
+ * HTML document converter.
+ */
+public interface DocumentConverter {
+
+    Document convert(Document doc);
 }
-

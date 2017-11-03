@@ -16,7 +16,9 @@
 package io.github.i49.spine.common;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.w3c.dom.Attr;
@@ -100,6 +102,15 @@ public class HtmlDocument {
        }
         return this;
     }
+    
+    public HtmlDocument replace(String expression, String tagName) {
+        for (Element oldElement: select(expression)) {
+            Element newElement = createElement(tagName);
+            moveChildren(oldElement, newElement);
+            oldElement.getParentNode().replaceChild(newElement, oldElement);
+        }
+        return this;
+    }
 
     private static void toLowerCase(Document doc, Element html) {
         visitNodes(html, node->{
@@ -117,6 +128,18 @@ public class HtmlDocument {
     private List<Element> select(String expression) {
         Selector selector = compiler.compile(expression);
         return selector.select(doc.getDocumentElement());
+    }
+
+    private Element createElement(String tagName) {
+        return createElement(tagName, Collections.emptyMap());
+    }
+    
+    private Element createElement(String tagName, Map<String, String> attributes) {
+        Element e = this.doc.createElement(tagName);
+        for (String key: attributes.keySet()) {
+            e.setAttribute(key, attributes.get(key));
+        }
+        return e;
     }
 
     private static void visitNodes(Node root, Consumer<Node> visitor) {
@@ -151,6 +174,12 @@ public class HtmlDocument {
             if (e != null) {
                 e.removeAttributeNode(a);
             }
+        }
+    }
+    
+    private static void moveChildren(Element from, Element to) {
+        while (from.hasChildNodes()) {
+            to.appendChild(from.getFirstChild());
         }
     }
 }
