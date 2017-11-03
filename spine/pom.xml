@@ -36,7 +36,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>io.github.i49.spine.browser.Browser</mainClass>
+                            <mainClass>io.github.i49.spine.bootstrap.Launcher</mainClass>
                             <addClasspath>true</addClasspath>    
                         </manifest>    
                     </archive>
@@ -57,7 +57,8 @@
 		                <groupId>org.apache.maven.plugins</groupId>
 		                <artifactId>maven-compiler-plugin</artifactId>
 		                <configuration>
-		                    <release>8</release>
+		                    <source>1.8</source>
+		                    <target>1.8</target>
 		                    <excludes>
 		                      <exclude>module-info.java</exclude>
 		                    </excludes>
